@@ -1,13 +1,14 @@
 import streamlit as st
-import easyocr
-import re
+import pytesseract
 from PIL import Image
+import re
 import numpy as np
 
-st.title("Expense Extraction App")
+st.title("Expense Extraction App with Tesseract OCR")
 
-# Initialize EasyOCR reader (English)
-reader = easyocr.Reader(['en'])
+# If Tesseract is not in PATH, specify the executable path
+# Example for Windows: pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# For Linux/Mac, Tesseract is usually in PATH by default
 
 # File uploader
 uploaded_file = st.file_uploader("Upload Receipt", type=["png", "jpg", "jpeg"])
@@ -32,12 +33,11 @@ if uploaded_file is not None:
     img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Receipt", use_column_width=True)
 
-    # Convert PIL Image to NumPy array for EasyOCR
-    img_np = np.array(img)
+    # Convert to grayscale for better OCR accuracy (optional)
+    img_gray = img.convert('L')
 
-    # OCR using EasyOCR
-    results = reader.readtext(img_np)
-    extracted_text = "\n".join([res[1] for res in results])
+    # OCR using Tesseract
+    extracted_text = pytesseract.image_to_string(img_gray)
 
     # Extract expense fields
     data = extract_expense_details(extracted_text)
